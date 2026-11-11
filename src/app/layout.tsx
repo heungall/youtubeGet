@@ -1,0 +1,36 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Layers3 } from "lucide-react";
+import { Navigation } from "@/components/navigation";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: { default: "콘텐츠 아카이브", template: "%s · 콘텐츠 아카이브" },
+  description: "공개 유튜브 영상을 키워드로 정리하는 내부 콘텐츠 아카이브",
+  robots: { index: false, follow: false },
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <html lang="ko"><body className="font-sans antialiased">
+    <a href="#main-content" className="sr-only fixed z-50 rounded bg-primary p-3 text-white focus:not-sr-only">본문으로 이동</a>
+    <div className="min-h-screen md:grid md:grid-cols-[230px_1fr]">
+      <aside className="border-b bg-card md:sticky md:top-0 md:flex md:h-screen md:flex-col md:border-r md:border-b-0">
+        <Link href="/" className="flex items-center gap-3 px-6 pt-7 pb-5">
+          <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-white"><Layers3 className="size-5" aria-hidden="true" /></span>
+          <span><span className="block text-sm font-bold">콘텐츠 아카이브</span><span className="mt-0.5 block text-[10px] tracking-widest text-muted-foreground">YOUTUBE KEYWORD ARCHIVE</span></span>
+        </Link>
+        <Navigation />
+        <div className="mx-5 mt-auto hidden border-t py-5 text-xs leading-5 text-muted-foreground md:block">
+          <span className="mb-2 inline-flex items-center gap-2 font-medium"><span className="size-1.5 rounded-full bg-amber-500" />개발 환경 · 연동 전</span>
+          <p>공개 영상의 메타데이터를 정리하고<br />검토한 콘텐츠를 다시 찾아보세요.</p>
+        </div>
+      </aside>
+      <div className="min-w-0">
+        <div className="flex h-14 items-center justify-between border-b bg-card px-6 text-xs text-muted-foreground md:px-10">
+          <span>내부 콘텐츠 워크스페이스</span><span className="rounded-md border px-2 py-1">초기 구성</span>
+        </div>
+        <main id="main-content" className="mx-auto max-w-7xl px-5 py-8 md:px-10 md:py-10">{children}</main>
+      </div>
+    </div>
+  </body></html>;
+}
