@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { readLoginInput, safeReturnTo } from "@/lib/auth/input";
+import { safeReturnTo } from "@/lib/auth/input";
+import { appOrigin, googleCallbackUrl, validGoogleAuthorizeUrl } from "@/lib/auth/oauth";
 import { escapeLike, libraryPageHref, readLibraryFilters, youtubeThumbnail } from "@/lib/library-input";
 
 describe("인증 입력과 복귀 주소", () => {
@@ -10,21 +11,25 @@ describe("인증 입력과 복귀 주소", () => {
     expect(safeReturnTo("/library?q=%EA%B8%B0%EB%8F%84&page=2")).toBe("/library?q=%EA%B8%B0%EB%8F%84&page=2");
     expect(safeReturnTo("/library?q=prayer%20time")).toBe("/library?q=prayer%20time");
   });
-  it("이메일만 trim하고 비밀번호의 공백을 보존한다", () => {
-    const form = new FormData();
-    form.set("email", " user@example.com ");
-    form.set("password", " password with space ");
-    expect(readLoginInput(form)).toEqual({ email: "user@example.com", password: " password with space " });
+  it("명시한 배포 주소를 사용하고 운영에서 localhost를 기본값으로 만들지 않는다", () => {
+    expect(appOrigin({ APP_URL: "https://archive.example" }, "https://preview.example")).toBe("https://archive.example");
+    expect(appOrigin({}, "https://archive.example")).toBe("https://archive.example");
+    expect(() => appOrigin({ NODE_ENV: "production" })).toThrow();
+    expect(appOrigin({ NODE_ENV: "development" })).toBe("http://localhost:3000");
   });
-  it.each(["", "not-email", "a@", "a b@example.com"])("잘못된 이메일을 거부한다: %s", (email) => {
-    const form = new FormData(); form.set("email", email); form.set("password", "password");
-    expect(readLoginInput(form)).toBeNull();
+  it.each(["http://example.com", "https://user:secret@example.com", "https://example.com/path", "https://example.com/?key=x", "javascript:alert(1)"])("잘못된 고정 사이트 주소를 거부한다: %s", (value) => {
+    expect(() => appOrigin({ APP_URL: value })).toThrow();
   });
-  it("누락·빈 비밀번호와 파일 입력을 거부한다", () => {
-    const form = new FormData(); form.set("email", "user@example.com");
-    expect(readLoginInput(form)).toBeNull();
-    form.set("password", ""); expect(readLoginInput(form)).toBeNull();
-    form.set("password", new Blob(["not-password"])); expect(readLoginInput(form)).toBeNull();
+  it("OAuth 콜백은 쿼리 없이 고정된 주소를 사용한다", () => {
+    const url = new URL(googleCallbackUrl("https://archive.example"));
+    expect(url.origin).toBe("https://archive.example");
+    expect(url.pathname).toBe("/auth/callback");
+    expect(url.search).toBe("");
+  });
+  it("Supabase의 Google 인가 주소만 허용한다", () => {
+    const project = "https://project.supabase.co";
+    expect(validGoogleAuthorizeUrl(`${project}/auth/v1/authorize?provider=google`, project)).toBe(true);
+    for (const url of [null, "https://evil.example/auth/v1/authorize?provider=google", `${project}/auth/v1/authorize?provider=github`, `${project}/other?provider=google`, `https://user:secret@project.supabase.co/auth/v1/authorize?provider=google`]) expect(validGoogleAuthorizeUrl(url, project)).toBe(false);
   });
 });
 

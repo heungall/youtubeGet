@@ -75,3 +75,34 @@
 - 결정 사항/근거: 기본 로그인은 Supabase 관리 화면에서 생성한 내부 계정으로 제공하고 프로젝트의 공개 가입 설정도 별도로 비활성화하도록 문서화한다. Supabase 공식 SSR 문서의 getClaims/Proxy/쿠키 동기화 흐름을 적용한다. 기존 SQL은 재실행할 필요가 없다.
 - 이슈·제약: 원격 DB 생성 타입은 아직 확보하지 않아 조회 결과 DTO를 명시했다. 실제 원격 통합 검증은 T-024, 영상 수집/쓰기·커서 저장은 T-004/T-005, 기한 만료 데이터 갱신/삭제는 T-023에 유지한다. 공개 회원가입·메일 초대·비밀번호 재설정 흐름은 미구현이다.
 - 다음 작업: 이번 코드를 커밋하고 실제 환경에서 `/login` → `/settings`의 DB 조회를 확인한 뒤 YouTube 검색·채널 수집을 구현한다. 원격 push는 수행하지 않는다.
+
+## 2026-11-11 15:25 KST — 메일 수락 후 localhost 이동 원인 검토
+- 작업 ID/연관 TODO: `T-029`, `T-024`
+- 목적: 사용자가 보고한 메일 Accept 후 localhost:3000 이동의 원인과 현재 앱의 지원 범위를 구분한다.
+- 변경 사항: 후속 설정/초대 처리 작업을 TODO에 등록. 사용자는 Vercel Supabase 환경변수 설정 완료도 확인함.
+- 변경 파일: `history.md`, `todo.md`.
+- 실행한 검증 및 결과: 로그인 액션과 전체 인증 경로 검색으로 이메일·비밀번호 로그인만 구현되고 초대 토큰 확인/세션 교환/비밀번호 설정 경로는 없음을 확인. Supabase 공식 Redirect URLs/Email Templates/Users 문서에서 기본 Site URL localhost:3000 및 초대 리다이렉트 동작 확인. 애플리케이션 코드 변경이 없어 테스트 재실행하지 않음.
+- 결정 사항/근거: Supabase Site URL 기본값 또는 메일 redirect_to가 localhost를 가리키는 것으로 추정한다. 실제 프로젝트 설정은 직접 조회하지 않았으므로 확정 진단으로 보고하지 않는다. Site URL/허용 URL 변경만으로 현재 앱의 초대 수락·비밀번호 설정 흐름까지 완성되는 것은 아님을 안내한다.
+- 이슈·제약: 실제 배포 도메인/메일 링크/프로젝트 URL Configuration은 확인하지 않음. 기존 초대 토큰은 단일 사용/만료 상태에 따라 재사용되지 않을 수 있음. 계정 삭제나 재초대는 수행하지 않음.
+- 다음 작업: 실제 배포 주소로 Auth URL 설정을 확인하고 초대 계정의 비밀번호 설정/콜백 지원이 필요한 경우 T-029에서 구현한다.
+
+## 2026-11-11 15:42 KST — Google OAuth 로그인으로 전환
+- 작업 ID/연관 TODO: `T-030`, `T-024`; 로그인 정책 변경 `T-018`, 초대 작업 제외 `T-029`
+- 목적: 별도 아이디·비밀번호 입력 없이 Google 계정으로 인증하자는 사용자의 요청을 구현한다.
+- 변경 사항:
+  - 이메일·비밀번호 폼/입력 검증/비밀번호 로그인 액션을 제거하고 Google 로그인 버튼과 서버 OAuth 시작 액션으로 대체.
+  - Supabase PKCE 콜백 추가. 코드 교환, 사용자 취소/누락/실패, 세션 및 verifier 정리 쿠키 보존, 공유 캐시 방지 처리. 인증 코드와 공급자 오류 설명은 로그/화면에 노출하지 않음.
+  - 고정 `/auth/callback` URL을 사용하고 복귀 경로는 별도 10분 HttpOnly 쿠키에 저장 후 삭제. Supabase Google 인가 URL 및 앱 내부 복귀 경로만 허용. 선택 `APP_URL`, 요청 Origin, Vercel URL을 사용하고 운영 주소가 없을 때 localhost로 기본 이동하지 않음.
+  - 콜백 응답은 상대 Location으로 현재 사이트를 유지하며 임의 forwarded-host나 Next.js의 로컬 호스트 정규화를 이동 주소에 사용하지 않음. 서버/Proxy/콜백 쿠키 옵션을 공통화.
+  - Google/Supabase에 등록할 두 콜백 주소, 공급자 키 설정, Google 첫 가입 허용 및 테스트 사용자 안내 문서 추가. 요구사항 v0.4 및 TODO/README 갱신. SQL/의존성/기존 사용자 데이터 변경 없음. 사용자 수정 `AGENT.md` 보존.
+- 변경 파일: `.env.example`, `src/app/login/*`, `src/app/auth/callback/route.ts`, 대시보드/설정 안내 문구, `src/lib/auth/*`, `src/lib/supabase/{cookies,server,proxy}.ts`, `tests/{auth-input,google-actions,oauth-callback,oauth-sdk}.test.ts`, 기존 비밀번호 액션 테스트 제거, `README.md`, `doc/Google로그인설정.md`, `doc/개발기반.md`, `doc/요구사항정의서.md`, `todo.md`, `history.md`.
+- 실행한 검증 및 결과:
+  - `npm run check`: 린트/타입 검사 통과, 8개 파일 95개 테스트 통과. Google OAuth 시작/실패, 코드 교환/쿠키 보존, 취소/중복 코드, 외부 복귀 주소 차단, 기존 RLS/조회 테스트 포함.
+  - 실제 설치된 Supabase SDK로 PKCE verifier 쿠키와 S256 challenge를 생성하고 모의 Auth HTTP 응답에 대해 콜백이 동일 verifier를 제출한 뒤 HttpOnly 세션 쿠키를 반환하는 흐름 검증. 외부 Google 계정은 사용하지 않음.
+  - `npm run build`: 최종 프로덕션 빌드 통과. `/auth/callback` Route Handler 포함.
+  - 최초 로컬 콜백 검사에서 요청한 127.0.0.1이 Next.js의 localhost로 정규화되는 호스트 차이로 검사 실패. 상대 Location으로 수정 후 정적 검사/95개 테스트/빌드 재실행 및 HTTP 재검증 통과.
+  - 로컬 `/login` HTTP 200, Google 버튼 존재/이메일·비밀번호 필드 부재 확인. 코드 없는 `/auth/callback`은 307, Location `/login?notice=oauth_failed`, private/no-store 확인. `.next/static`의 서버 키 환경변수명 검색 미검출. `git diff --check` 통과.
+  - 실제 Google 인증·Supabase 공급자 설정·원격 두 계정 접근 검증 및 브라우저 시각 검수는 미실행. Google Client ID/Secret 또는 실제 사용자 비밀번호를 확보하거나 저장하지 않음.
+- 결정 사항/근거: 사용자 요청으로 초기 비밀번호 로그인 정책을 대체한다. 메일 초대·비밀번호 설정 구현은 취소하며 과거 조사 기록은 보존한다. Supabase 공식 Google/SSR/PKCE 문서를 근거로 서버 흐름을 구현한다. Google Client Secret은 Supabase 공급자 설정에서만 관리하고 앱에는 Google 비밀번호 입력을 제공하지 않는다.
+- 이슈·제약: 실제 사용에는 Google OAuth 클라이언트 및 Supabase Google 공급자/허용 URL 설정이 필요하다. 계정의 최초 가입 허용과 Google Audience 대상 사용자는 외부 설정에서 관리한다. 실제 연결 검증은 T-024에 남긴다.
+- 다음 작업: 이번 변경을 로컬 커밋으로 기록한 뒤 설정 안내에 따라 Google 공급자를 연결하고 실제 로그인/DB 조회를 확인한다. 원격 push는 수행하지 않는다.

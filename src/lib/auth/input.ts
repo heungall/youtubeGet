@@ -12,12 +12,3 @@ export function safeReturnTo(value: unknown): string {
     return "/";
   }
 }
-
-export function readLoginInput(form: FormData) {
-  const email = form.get("email");
-  const password = form.get("password");
-  if (typeof email !== "string" || typeof password !== "string") return null;
-  const trimmedEmail = email.trim();
-  if (trimmedEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail) || password.length < 1 || password.length > 1024) return null;
-  return { email: trimmedEmail, password };
-}

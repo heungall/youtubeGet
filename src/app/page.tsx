@@ -23,7 +23,7 @@ export default async function Home() {
         <div className="p-7 md:p-9">
           <span className="rounded-md bg-[#edf3ef] px-2.5 py-1 text-xs font-medium text-primary">아카이브 시작하기</span>
           <h2 className="mt-5 text-xl font-semibold">{overview ? "개인 아카이브가 연결되었습니다." : "첫 번째 영상이 들어올 자리를 준비했습니다."}</h2>
-          <p className="mt-3 max-w-lg text-sm leading-7 text-muted-foreground">{overview ? "Supabase에 저장된 영상과 채널을 조회하고 있습니다. YouTube에서 새 영상을 가져오는 수집 기능은 다음 단계에서 연결합니다." : "Supabase 연결 설정을 마치고 등록된 내부 계정으로 로그인하세요. 로그인 후 실제 저장 현황을 확인할 수 있습니다."}</p>
+          <p className="mt-3 max-w-lg text-sm leading-7 text-muted-foreground">{overview ? "Supabase에 저장된 영상과 채널을 조회하고 있습니다. YouTube에서 새 영상을 가져오는 수집 기능은 다음 단계에서 연결합니다." : "Supabase 연결 설정을 마치고 Google 계정으로 로그인하세요. 로그인 후 실제 저장 현황을 확인할 수 있습니다."}</p>
           <Button asChild className="mt-6"><Link href="/library">영상 라이브러리 둘러보기<ArrowRight /></Link></Button>
         </div>
         <ol className="space-y-5 border-t bg-[#fafbf9] p-7 md:border-t-0 md:border-l md:p-9">

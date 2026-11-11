@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getConfigurationStatus, readSupabaseConfig } from "@/lib/config";
 import { supabaseFetch } from "@/lib/supabase/transport";
+import { sessionCookieOptions } from "@/lib/supabase/cookies";
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -10,7 +11,7 @@ export async function updateSession(request: NextRequest) {
   const config = readSupabaseConfig(process.env);
   const client = createServerClient(config.url, config.key, {
     global: { fetch: supabaseFetch },
-    cookieOptions: { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/" },
+    cookieOptions: sessionCookieOptions(),
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll(cookiesToSet, headers) {
