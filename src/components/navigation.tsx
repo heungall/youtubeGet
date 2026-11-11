@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, LayoutDashboard, Library, Settings2 } from "lucide-react";
+import { BookOpen, Download, LayoutDashboard, Library, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/", label: "대시보드", icon: LayoutDashboard },
+  { href: "/collect", label: "YouTube 수집", icon: Download },
   { href: "/library", label: "영상 라이브러리", icon: Library },
   { href: "/keywords", label: "키워드 사전", icon: BookOpen },
   { href: "/settings", label: "연동 설정", icon: Settings2 },

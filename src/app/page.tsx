@@ -23,14 +23,14 @@ export default async function Home() {
         <div className="p-7 md:p-9">
           <span className="rounded-md bg-[#edf3ef] px-2.5 py-1 text-xs font-medium text-primary">아카이브 시작하기</span>
           <h2 className="mt-5 text-xl font-semibold">{overview ? "개인 아카이브가 연결되었습니다." : "첫 번째 영상이 들어올 자리를 준비했습니다."}</h2>
-          <p className="mt-3 max-w-lg text-sm leading-7 text-muted-foreground">{overview ? "Supabase에 저장된 영상과 채널을 조회하고 있습니다. YouTube에서 새 영상을 가져오는 수집 기능은 다음 단계에서 연결합니다." : "Supabase 연결 설정을 마치고 Google 계정으로 로그인하세요. 로그인 후 실제 저장 현황을 확인할 수 있습니다."}</p>
-          <Button asChild className="mt-6"><Link href="/library">영상 라이브러리 둘러보기<ArrowRight /></Link></Button>
+          <p className="mt-3 max-w-lg text-sm leading-7 text-muted-foreground">{overview ? "키워드 검색이나 채널 업로드 목록에서 공개 영상을 가져와 보세요. 한 번에 최대 50개씩 저장하고 다음 페이지를 이어서 수집할 수 있습니다." : "Supabase 연결 설정을 마치고 Google 계정으로 로그인하세요. 로그인 후 실제 저장 현황을 확인할 수 있습니다."}</p>
+          <Button asChild className="mt-6"><Link href="/collect">YouTube 영상 가져오기<ArrowRight /></Link></Button>
         </div>
         <ol className="space-y-5 border-t bg-[#fafbf9] p-7 md:border-t-0 md:border-l md:p-9">
           {[
             { title: "워크스페이스 기본 구성", text: "화면 구조와 13개 대표 키워드", ready: true },
             { title: "데이터 연결", text: overview ? "로그인 및 DB 조회 확인됨" : "Supabase 설정 후 로그인", ready: !!overview },
-            { title: "공개 영상 수집", text: "채널 또는 키워드 검색 · 구현 예정", ready: false },
+            { title: "공개 영상 수집", text: "채널 또는 키워드 검색 · 수집 화면에서 시작", ready: false },
           ].map((step, i) => <li key={step.title} className="flex items-start gap-3">
             <span className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs ${step.ready ? "bg-primary text-white" : "border bg-white text-muted-foreground"}`}>{step.ready ? <Check className="size-3.5" aria-label="구성됨" /> : i + 1}</span>
             <div><p className="text-sm font-medium">{step.title}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{step.text}</p></div>

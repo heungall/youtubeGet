@@ -7,6 +7,7 @@
 - [요구사항정의서](doc/요구사항정의서.md): 목표, 수용 기준, 현재 구현 범위.
 - [README](README.md): 실행 방법, 환경변수, 현재 상태와 문서 입구.
 - [Google 로그인 설정](doc/Google로그인설정.md): Google/Supabase 공급자와 콜백 설정.
+- [YouTube 연동 설정](doc/YouTube연동설정.md): 공개 수집·추가 SQL·정기 삭제·쿼터와 검증 범위.
 - [개발 기반](doc/개발기반.md): 인증·DB·보관 정책의 구현 결정과 검증 경계.
 - **`AGENT.md`**: 개발·보안·작업 기록 규칙.
 - [history.md](history.md): **개발 이력 누적 기록**. 기존 기록을 지우거나 덮어쓰지 않고 시간순으로 추가한다.
@@ -42,7 +43,7 @@
 
 - 로그인은 **Supabase를 통한 Google OAuth**다. 앱에서 아이디·비밀번호를 입력받거나 별도 비밀번호 가입, 메일 초대 수락, 비밀번호 재설정 흐름을 추가하지 않는다. 사용자 요청으로 정책이 바뀌면 관련 문서를 함께 수정한다.
 - Google 인증은 앱 사용자 식별용이다. 기본 로그인에 YouTube/Gmail 권한이나 Google 오프라인 접근 권한을 추가하지 않는다. 공개 영상 수집은 별도 서버 YouTube API 연동으로 구현한다.
-- Google Client ID/Secret은 Supabase Google 공급자 설정에 둔다. 앱은 `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, 선택 `APP_URL`을 사용한다. `YOUTUBE_API_KEY`는 수집 기능 구현 시 사용한다. `VERCEL_URL`은 플랫폼이 제공하는 주소 대체값이며 직접 작성하는 필수 키가 아니다.
+- Google Client ID/Secret은 Supabase Google 공급자 설정에 둔다. 앱은 `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, 선택 `APP_URL`을 사용한다. `YOUTUBE_API_KEY`는 서버 수집 요청에 사용한다. 예제 파일의 주석에도 실제 키를 남기지 않는다. `VERCEL_URL`은 플랫폼이 제공하는 주소 대체값이며 직접 작성하는 필수 키가 아니다.
 - Google 콘솔의 Supabase `/auth/v1/callback`과 앱의 `/auth/callback`을 구분한다. PKCE verifier, 세션 쿠키, 로그인 복귀 쿠키 및 캐시 헤더가 리다이렉트 응답에 유지되어야 한다.
 - 사용자 데이터는 Supabase Auth 사용자 ID와 RLS로 분리한다. 서버 조회에서도 검증된 사용자와 소유 범위를 확인한다. Google 로그인만으로 모든 사용자가 같은 영상을 공유한다고 가정하지 않는다.
 - 코드 구현 완료, 로컬 검증 완료, 사용자에게 완료를 확인받은 외부 설정, 실제 원격 통합 검증을 구분한다. 과거 이력에 있는 비밀번호 로그인 안내를 현재 운영 절차로 다시 사용하지 않는다.

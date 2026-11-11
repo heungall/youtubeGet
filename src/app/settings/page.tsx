@@ -36,9 +36,10 @@ export default async function SettingsPage() {
       <ol className="mt-4 list-inside list-decimal space-y-3 text-sm leading-6 text-muted-foreground">
         <li>서버 환경변수에 Supabase 프로젝트 주소, 공개 키, YouTube API 키를 설정합니다.</li>
         <li>Supabase에 DB 마이그레이션을 적용하고 Google 로그인을 연결합니다.</li>
-        <li>연동 구현 후 실제 검색·저장·재접속과 접근 권한을 검증합니다.</li>
+        <li>수집용 추가 SQL과 보관 기한 정기 작업을 적용한 뒤 YouTube 수집 화면에서 검색·저장을 확인합니다.</li>
       </ol>
-      <p className="mt-5 text-xs leading-6 text-muted-foreground">위 환경변수 표시는 값의 존재와 주소 형식만 확인합니다. 실제 DB 상태는 로그인 후 별도로 조회하며, YouTube API 연결은 아직 검증하지 않습니다.</p>
+      <p className="mt-5 text-xs leading-6 text-muted-foreground">위 환경변수 표시는 값의 존재와 주소 형식만 확인합니다. 실제 DB 상태는 로그인 후 별도로 조회하며, YouTube 연결은 수집 화면에서 요청할 때 확인합니다.</p>
+      <Button asChild variant="outline" className="mt-4"><Link href="/collect">YouTube 수집 시작</Link></Button>
     </section>
   </>;
 }

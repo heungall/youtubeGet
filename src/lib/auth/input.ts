@@ -6,7 +6,7 @@ export function safeReturnTo(value: unknown): string {
   try {
     if (/[\\\u0000-\u001f\u007f]/.test(decodeURIComponent(value))) return "/";
     const url = new URL(value, "https://archive.invalid");
-    if (url.origin !== "https://archive.invalid" || !["/", "/library", "/keywords", "/settings"].includes(url.pathname)) return "/";
+    if (url.origin !== "https://archive.invalid" || !["/", "/library", "/collect", "/keywords", "/settings"].includes(url.pathname)) return "/";
     return url.pathname + url.search;
   } catch {
     return "/";

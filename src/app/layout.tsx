@@ -38,6 +38,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             : <Button asChild variant="outline" size="sm"><Link href="/login">로그인</Link></Button>}
         </div>
         <main id="main-content" className="mx-auto max-w-7xl px-5 py-8 md:px-10 md:py-10">{children}</main>
+        <footer className="flex flex-wrap gap-4 px-5 pb-6 text-xs text-muted-foreground md:px-10"><Link href="/privacy" className="hover:underline">개인정보 처리 안내</Link><a href="https://www.youtube.com/t/terms" className="hover:underline">YouTube 이용약관</a></footer>
       </div>
     </div>
   </body></html>;

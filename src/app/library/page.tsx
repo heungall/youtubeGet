@@ -17,7 +17,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
   const session = state.status === "setup_required" ? null : await requireWorkspaceSession(libraryPageHref(filters, filters.page));
   const result = session ? await loadLibrary(session, filters) : null;
   return <>
-    <PageHeading eyebrow="WORKSPACE / LIBRARY" title="영상 라이브러리" description="저장된 공개 영상을 제목과 자막 표시 상태로 찾아보세요. 사용자 본인의 영상만 조회합니다." />
+    <PageHeading eyebrow="WORKSPACE / LIBRARY" title="영상 라이브러리" description="저장된 공개 영상을 제목과 자막 표시 상태로 찾아보세요. 사용자 본인의 영상만 조회합니다." action={<Button asChild><Link href="/collect">YouTube 영상 수집</Link></Button>} />
     {session && <form action="/library" method="get" className="mb-5 flex flex-wrap items-end gap-3 rounded-xl border bg-card p-4">
       <div className="min-w-40 flex-1"><label htmlFor="video-query" className="text-xs font-medium">영상 제목</label><input id="video-query" name="q" defaultValue={filters.query} maxLength={100} placeholder="검색어를 입력하세요" className="mt-2 h-10 w-full rounded-lg border px-3 text-sm" /></div>
       <div><label htmlFor="caption" className="text-xs font-medium">자막 표시</label><select id="caption" name="caption" defaultValue={filters.caption} className="mt-2 block h-10 rounded-lg border bg-white px-3 text-sm"><option value="all">전체</option><option value="available">표시 있음</option><option value="unavailable">표시 없음</option><option value="unknown">확인 불가</option></select></div>
@@ -27,7 +27,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
       : !result ? <section role="alert" className="rounded-xl border bg-card p-8"><h2 className="font-semibold">영상 목록을 불러오지 못했습니다.</h2><p className="mt-3 text-sm leading-7 text-muted-foreground">연결 상태와 DB 구성을 확인한 뒤 다시 시도해 주세요. 저장된 데이터는 변경하지 않았습니다.</p><Button asChild className="mt-5" variant="outline"><Link href="/settings">연결 상태 확인</Link></Button></section>
       : <>
         <p className="mb-4 text-xs text-muted-foreground">검색 결과 {result.count.toLocaleString("ko-KR")}개 · {filters.page}페이지 · 페이지당 최대 {LIBRARY_PAGE_SIZE}개</p>
-        {result.videos.length === 0 ? <section className="flex min-h-72 flex-col items-center justify-center rounded-xl border bg-card px-6 py-12 text-center"><Library className="size-8 text-muted-foreground" aria-hidden="true" /><h2 className="mt-5 text-lg font-semibold">표시할 영상이 없습니다.</h2><p className="mt-3 max-w-lg text-sm leading-7 text-muted-foreground">검색 조건에 맞는 최신 공개 영상이 없습니다. YouTube 영상 수집은 다음 개발 단계에서 연결합니다.</p></section>
+        {result.videos.length === 0 ? <section className="flex min-h-72 flex-col items-center justify-center rounded-xl border bg-card px-6 py-12 text-center"><Library className="size-8 text-muted-foreground" aria-hidden="true" /><h2 className="mt-5 text-lg font-semibold">표시할 영상이 없습니다.</h2><p className="mt-3 max-w-lg text-sm leading-7 text-muted-foreground">검색 조건에 맞는 최신 공개 영상이 없습니다. YouTube 수집 화면에서 영상을 가져오거나 검색 조건을 바꿔 보세요.</p></section>
           : <div className="divide-y overflow-hidden rounded-xl border bg-card">{result.videos.map((video) => {
             const thumbnail = youtubeThumbnail(video.thumbnail_url);
             return <article key={video.id} className="flex flex-col gap-4 p-5 sm:flex-row">
