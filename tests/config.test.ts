@@ -23,4 +23,11 @@ describe("서버 설정 검증", () => {
   it("누락된 설정 오류에 비밀값을 넣지 않는다", () => {
     expect(() => readSupabaseConfig({ SUPABASE_PUBLISHABLE_KEY: "secret" })).toThrow("Supabase 환경변수 설정을 확인해 주세요.");
   });
+
+  it("RLS를 우회하는 secret/service-role 키를 거부한다", () => {
+    const serviceKey = `test.${Buffer.from(JSON.stringify({ role: "service_role" })).toString("base64url")}.signature`;
+    for (const key of ["sb_secret_test_fixture", serviceKey]) {
+      expect(getConfigurationStatus({ SUPABASE_URL: "https://project.supabase.co", SUPABASE_PUBLISHABLE_KEY: key }).supabase).toBe("invalid");
+    }
+  });
 });

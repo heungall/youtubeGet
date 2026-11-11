@@ -1,6 +1,16 @@
 type Environment = Record<string, string | undefined>;
 type ConfigState = "missing" | "invalid" | "configured";
 
+function privilegedKey(value: string) {
+  if (value.startsWith("sb_secret_")) return true;
+  try {
+    const payload = value.split(".")[1];
+    if (!payload) return false;
+    const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+    return decoded.role === "service_role";
+  } catch { return false; }
+}
+
 function validSupabaseUrl(value: string) {
   try {
     const url = new URL(value);
@@ -15,7 +25,7 @@ function validSupabaseUrl(value: string) {
 export function getConfigurationStatus(env: Environment) {
   const url = env.SUPABASE_URL?.trim();
   const key = env.SUPABASE_PUBLISHABLE_KEY?.trim();
-  const supabase: ConfigState = !url || !key ? "missing" : validSupabaseUrl(url) ? "configured" : "invalid";
+  const supabase: ConfigState = !url || !key ? "missing" : validSupabaseUrl(url) && !privilegedKey(key) ? "configured" : "invalid";
   return {
     supabase,
     youtube: env.YOUTUBE_API_KEY?.trim() ? "configured" as const : "missing" as const,

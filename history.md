@@ -45,3 +45,33 @@
 - 결정 사항/근거: 요청 범위에 따라 로컬 커밋을 생성한다. 커밋 메시지는 `feat: initialize keyword archive app and Supabase schema`로 정한다.
 - 이슈·제약: 원격 push와 Vercel 배포는 수행하지 않는다. 실제 DB/API 연동 전 기본 화면이며 미구현 기능은 기존 TODO에 유지한다.
 - 다음 작업: 사용자의 Vercel 배포 후 로그인 및 실제 Supabase·YouTube API 연동을 이어간다.
+
+## 2026-11-11 10:56 KST — 원격 반영 확인 및 다음 작업 안내
+- 작업 ID/연관 TODO: `T-027`, `T-015`, `T-024`
+- 목적: 사용자의 다음 단계 질문에 현재 Git 상태와 개발 범위에 맞는 배포/연동 순서를 안내한다.
+- 변경 사항: 원격 main에 초기 구현 커밋이 반영되었음을 확인하고 T-015의 다음 행동을 구체화한다.
+- 변경 파일: `history.md`, `todo.md`. 사용자 수정 상태의 `AGENT.md`는 보존한다.
+- 실행한 검증 및 결과: `git ls-remote origin refs/heads/main`과 로컬 HEAD가 `6e1a4b011a2d702d0b6d55b4a26a58db7eb77ed3`로 일치. Vercel 공식 Git 연동/빌드 설정 문서 확인. 애플리케이션 코드 변경이 없어 기능 테스트 재실행하지 않음.
+- 결정 사항/근거: 추가 push 단계 없이 Vercel 저장소 Import 및 첫 화면 배포 확인을 먼저 안내한다. 이후 Supabase/Auth 실연동, YouTube 검색·수집 순서로 개발한다.
+- 이슈·제약: Vercel 프로젝트/배포 상태는 확인하지 않았다. 현재 기본 화면은 환경변수 없이 배포 가능하지만 영상 검색·영구 저장 기능은 미구현이다.
+- 다음 작업: T-015 첫 배포 확인, T-024 Supabase 및 로그인 연결, T-004/T-005 실제 영상 수집·저장 구현.
+
+## 2026-11-11 12:19 KST — Supabase 로그인·세션 및 사용자별 조회 연결
+- 작업 ID/연관 TODO: `T-028`; 부분 구현 `T-007`, `T-010`, `T-024`; 사용자 확인 반영 `T-015`, 로그인 방식 결정 `T-018`
+- 목적: 사용자가 완료한 Vercel 첫 배포와 Supabase 프로젝트/SQL 적용에 이어 로그인과 실제 DB 조회 코드를 연결한다.
+- 변경 사항:
+  - 내부 이메일·비밀번호 로그인/로그아웃 서버 액션, 입력 검증, 진행/실패 안내 및 로그인 후 앱 내부 복귀 주소 제한 구현. 공개 회원가입 UI는 제공하지 않음.
+  - Next.js Proxy의 검증된 claims 확인과 세션 갱신, 요청/응답 쿠키 동기화, 리다이렉트 쿠키/캐시 헤더 보존 구현. 서버 조회에서도 별도로 인증 확인.
+  - 서버 인증 전용 HttpOnly/SameSite=Lax 쿠키, 프로덕션 Secure, 공유 캐시 차단, 10초 네트워크 제한 적용. service-role/secret 키 설정 거부.
+  - 사용자별 DB 현황 및 최신 공개 영상 조회, 제목 검색·자막 표시 필터·최대 50개 페이지 이동, 영상/자막 상태 표시 구현. DB 조회 실패를 빈 목록 성공으로 표시하지 않고, 기한이 지난 영상 메타데이터는 숨김.
+  - README와 아키텍처 결정, 요구사항 v0.3, TODO 업데이트. 사용자 수정 `AGENT.md`는 변경하거나 커밋에 포함하지 않음. SQL/의존성 변경 없음.
+- 변경 파일: `src/app/login/*`, `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/library/page.tsx`, `src/app/settings/page.tsx`, `src/proxy.ts`, `src/lib/auth/*`, `src/lib/archive.ts`, `src/lib/library-input.ts`, `src/lib/config.ts`, `src/lib/supabase/*`, `tests/auth-*.test.ts`, `tests/archive.test.ts`, `tests/config.test.ts`, `README.md`, `doc/개발기반.md`, `doc/요구사항정의서.md`, `todo.md`, `history.md`.
+- 실행한 검증 및 결과:
+  - `npm run check`: 린트·타입 검사 통과, 6개 파일 85개 테스트 통과. Auth 액션·Proxy 응답은 모의하며 SQL RLS는 기존 PGlite 엔진 테스트로 실행. 실제 Supabase SDK에 모의 HTTP 응답을 제공해 소유자/필터/페이지 요청과 HEAD count 처리 검증.
+  - `npm run build`: 프로덕션 빌드 통과. 서버 전용 쿠키 설정 보강 후 정적 검사/85개 테스트/빌드 재검증.
+  - 실제 환경변수 값을 출력하지 않고 상태만 확인: 로컬 Supabase/YouTube 모두 missing. 로컬 프로덕션 `/`, `/login`, `/library`, `/keywords`, `/settings` HTTP 200, 제목 및 private/no-store 헤더, 미설정 로그인 폼 비활성화 확인.
+  - `.next/static`의 서버 키 환경변수명 검색: 미검출. 실제 키와 비밀번호는 사용하거나 저장하지 않음. `git diff --check` 통과.
+  - 실제 원격 Auth 로그인/재접속/두 계정 RLS 및 브라우저 시각 검수: 미실행. Vercel 환경변수 설정 여부는 질문했으며 응답을 가정하지 않음.
+- 결정 사항/근거: 기본 로그인은 Supabase 관리 화면에서 생성한 내부 계정으로 제공하고 프로젝트의 공개 가입 설정도 별도로 비활성화하도록 문서화한다. Supabase 공식 SSR 문서의 getClaims/Proxy/쿠키 동기화 흐름을 적용한다. 기존 SQL은 재실행할 필요가 없다.
+- 이슈·제약: 원격 DB 생성 타입은 아직 확보하지 않아 조회 결과 DTO를 명시했다. 실제 원격 통합 검증은 T-024, 영상 수집/쓰기·커서 저장은 T-004/T-005, 기한 만료 데이터 갱신/삭제는 T-023에 유지한다. 공개 회원가입·메일 초대·비밀번호 재설정 흐름은 미구현이다.
+- 다음 작업: 이번 코드를 커밋하고 실제 환경에서 `/login` → `/settings`의 DB 조회를 확인한 뒤 YouTube 검색·채널 수집을 구현한다. 원격 push는 수행하지 않는다.

@@ -3,24 +3,33 @@ import { ArrowRight, BookOpen, Check, Database, FolderSearch, Settings2 } from "
 import { Button } from "@/components/ui/button";
 import { PageHeading } from "@/components/page-heading";
 import { CATEGORIES } from "@/lib/categories";
+import { getWorkspaceSession, requireWorkspaceSession } from "@/lib/auth/session";
+import { loadOverview } from "@/lib/archive";
 
-export default function Home() {
+export default async function Home() {
+  const state = await getWorkspaceSession();
+  const session = state.status === "setup_required" ? null : await requireWorkspaceSession("/");
+  const overview = session ? await loadOverview(session) : null;
   return <>
     <PageHeading eyebrow="WORKSPACE / OVERVIEW" title="콘텐츠를 모으고, 다음 기획으로 연결하세요."
-      description="공개 유튜브 영상에서 키워드를 찾고 월별 콘텐츠를 선정하는 공간입니다. 먼저 데이터 연동을 준비해 주세요."
+      description="공개 유튜브 영상에서 키워드를 찾고 월별 콘텐츠를 선정하는 공간입니다. 저장된 콘텐츠는 사용자별로 관리합니다."
       action={<Button asChild variant="outline"><Link href="/settings"><Settings2 />연동 설정 확인</Link></Button>} />
+    {session && (overview ? <section aria-label="저장 현황" className="mb-6 grid gap-4 sm:grid-cols-3">{[
+      { label: "저장 영상", count: overview.videos }, { label: "등록 채널", count: overview.channels }, { label: "월별 캠페인", count: overview.campaigns },
+    ].map(({ label, count }) => <div key={label} className="rounded-xl border bg-card p-5"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-3 text-3xl font-semibold">{count.toLocaleString("ko-KR")}<span className="ml-1 text-sm font-normal text-muted-foreground">개</span></p></div>)}</section>
+      : <p role="alert" className="mb-6 rounded-xl border bg-amber-50 p-5 text-sm text-amber-900">DB 조회에 실패했습니다. 연동 설정에서 연결 상태를 확인하고 다시 시도해 주세요.</p>)}
     <section className="mb-8 overflow-hidden rounded-2xl border bg-card">
       <div className="grid md:grid-cols-[1.4fr_1fr]">
         <div className="p-7 md:p-9">
           <span className="rounded-md bg-[#edf3ef] px-2.5 py-1 text-xs font-medium text-primary">아카이브 시작하기</span>
-          <h2 className="mt-5 text-xl font-semibold">첫 번째 영상이 들어올 자리를 준비했습니다.</h2>
-          <p className="mt-3 max-w-lg text-sm leading-7 text-muted-foreground">현재는 프로젝트 초기 구성 단계입니다. 실제 영상 수집과 저장은 API 연동 및 로그인 기능 구현 후 사용할 수 있습니다.</p>
+          <h2 className="mt-5 text-xl font-semibold">{overview ? "개인 아카이브가 연결되었습니다." : "첫 번째 영상이 들어올 자리를 준비했습니다."}</h2>
+          <p className="mt-3 max-w-lg text-sm leading-7 text-muted-foreground">{overview ? "Supabase에 저장된 영상과 채널을 조회하고 있습니다. YouTube에서 새 영상을 가져오는 수집 기능은 다음 단계에서 연결합니다." : "Supabase 연결 설정을 마치고 등록된 내부 계정으로 로그인하세요. 로그인 후 실제 저장 현황을 확인할 수 있습니다."}</p>
           <Button asChild className="mt-6"><Link href="/library">영상 라이브러리 둘러보기<ArrowRight /></Link></Button>
         </div>
         <ol className="space-y-5 border-t bg-[#fafbf9] p-7 md:border-t-0 md:border-l md:p-9">
           {[
             { title: "워크스페이스 기본 구성", text: "화면 구조와 13개 대표 키워드", ready: true },
-            { title: "데이터 연결", text: "Supabase 설정과 로그인 · 다음 단계", ready: false },
+            { title: "데이터 연결", text: overview ? "로그인 및 DB 조회 확인됨" : "Supabase 설정 후 로그인", ready: !!overview },
             { title: "공개 영상 수집", text: "채널 또는 키워드 검색 · 구현 예정", ready: false },
           ].map((step, i) => <li key={step.title} className="flex items-start gap-3">
             <span className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs ${step.ready ? "bg-primary text-white" : "border bg-white text-muted-foreground"}`}>{step.ready ? <Check className="size-3.5" aria-label="구성됨" /> : i + 1}</span>
